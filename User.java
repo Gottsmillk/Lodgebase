@@ -22,6 +22,7 @@ public class User
 	int authority;
 	Connection conn=null;
 	ArrayList<String> history=new ArrayList<String>(0);
+	ArrayList<String> roomNumbers=new ArrayList<String>(0);
 	
 	public String getUserName()
 	{
@@ -35,6 +36,15 @@ public class User
 	{
 		return history;
 	}
+	public ArrayList<String> getRoomNumbers()
+	{
+		return roomNumbers;
+	}
+	
+	
+	
+	//----------------------FOR USERS------------------------------------
+	
 	//checks if username and password are correct: assign user authority and username if so
 	public boolean checkUser(String user,String password) throws ClassNotFoundException, SQLException
 	{
@@ -75,13 +85,18 @@ public class User
 		 stmt.executeUpdate(query);
 		 return true;
 	}
+	
+	//TODO method to search for room based on filters
+	
+	//shows users room history
 	public boolean userHistory(String user) throws ClassNotFoundException, SQLException
 	{
 		int userID, roomID;
 		String historyLine;
+		//sets up db connection
 		Class.forName("com.mysql.jdbc.Driver");
 		conn=DriverManager.getConnection("jdbc:mysql://lodgebasedb.ctud3vauv27c.us-east-1.rds.amazonaws.com/bookingproject","lodgebase","lodgebase");
-		//shows if account is already created
+		//finds user's id number
 		 String query="SELECT * FROM bookingproject.userinfo WHERE username=?;";
 		 PreparedStatement pstmt = conn.prepareStatement(query);
 		 pstmt.setString( 1, user); 
@@ -93,16 +108,18 @@ public class User
 		 else
 			 return false;
 		 history.clear();
+		 //looks up all users purchases(through the user id)
 		 query="SELECT * FROM bookingproject.userhistory WHERE userid=?;";
 		 pstmt = conn.prepareStatement(query);
 		 pstmt.setInt( 1, userID); 
 		 rs = pstmt.executeQuery( );
 		 if(!rs.first())
 			 return false;
+		 //prints the table from newest to oldest purchase
 		 rs.afterLast();
-		 int j=1;
 		 while(rs.previous())
 		 {
+			 //finds room number based off its table id number
 			 roomID=rs.getInt("roomid");
 			 String query2="SELECT * FROM bookingproject.rooms WHERE roomid=?;";
 			 PreparedStatement pstmt2 = conn.prepareStatement(query2);
@@ -113,13 +130,177 @@ public class User
 			 {
 				 roomName=rs2.getString("roomNumber");
 			 }
-			 System.out.println(++j);
-			 historyLine="You stayed in Room # " + roomName + " from "+ rs.getString("check-in")+ " to "+
-					 rs.getString("check-out");
+			 //adds the purchase to an arraylist of strings that will be used on the webpage
+			 historyLine="You stayed in Room # " + roomName + " from "+ rs.getString("check_in")+ " to "+
+					 rs.getString("check_out");
 			 history.add(historyLine);
 		 }
-		 for(int i=0;i<history.size();i++)
-			 System.out.println(history.get(i));
 		 return true;
 	}
+	
+	//--------------------------FOR RECEPTIONIST-------------------------------------------------
+	
+	//TODO method that switches a customers room for another one
+	//TODO method that removes a customers room reservation
+	//TODO method that returns customers password(only for authority level 0)
+	
+	
+	//--------------------------FOR MANAGERS-----------------------------------------------------
+	
+	
+	public boolean buildingRooms(String username) throws ClassNotFoundException, SQLException
+	{
+		//sets up db connection
+		int userID=0, buildingID=0;
+		Class.forName("com.mysql.jdbc.Driver");
+		conn=DriverManager.getConnection("jdbc:mysql://lodgebasedb.ctud3vauv27c.us-east-1.rds.amazonaws.com/bookingproject","lodgebase","lodgebase");
+		//finds user's id number
+		 String query="SELECT * FROM bookingproject.userinfo WHERE username=?;";
+		 PreparedStatement pstmt = conn.prepareStatement(query);
+		 pstmt.setString( 1, username); 
+		 ResultSet rs = pstmt.executeQuery( );
+		 if(rs.next())
+		 {
+			 userID=rs.getInt("userid");
+		 }
+		 //finds building id for the manager
+		 roomNumbers.clear();
+		 query="SELECT * FROM bookingproject.buildings WHERE managerid=?;";
+		 pstmt = conn.prepareStatement(query);
+		 pstmt.setInt( 1, userID); 
+		 rs = pstmt.executeQuery( );
+		 if(rs.next())
+		 {
+			 buildingID=rs.getInt("buildingid");
+		 }
+		 //finds all rooms associated with that building
+		 query="SELECT * FROM bookingproject.rooms WHERE buildingid=?;";
+		 pstmt = conn.prepareStatement(query);
+		 pstmt.setInt( 1, buildingID); 
+		 rs = pstmt.executeQuery( );
+		 while(rs.next())
+		 {
+			 roomNumbers.add(rs.getString("roomNumber"));
+		 }
+		 return true;
+	}
+	public void createRoom(String username,String smoking,int numberOfBeds,int numberOfPeople, double price,String roomNumber) throws SQLException, ClassNotFoundException
+	{
+		//sets up db connection
+			int userID=0, buildingID=0;
+			Class.forName("com.mysql.jdbc.Driver");
+			conn=DriverManager.getConnection("jdbc:mysql://lodgebasedb.ctud3vauv27c.us-east-1.rds.amazonaws.com/bookingproject","lodgebase","lodgebase");
+			//finds user's id number
+			 String query="SELECT * FROM bookingproject.userinfo WHERE username=?;";
+			 PreparedStatement pstmt = conn.prepareStatement(query);
+			 pstmt.setString( 1, username); 
+			 ResultSet rs = pstmt.executeQuery( );
+			 if(rs.next())
+			 {
+				 userID=rs.getInt("userid");
+			 }
+			 //finds building id for the manager
+			 roomNumbers.clear();
+			 query="SELECT * FROM bookingproject.buildings WHERE managerid=?;";
+			 pstmt = conn.prepareStatement(query);
+			 pstmt.setInt( 1, userID); 
+			 rs = pstmt.executeQuery( );
+			 if(rs.next())
+			 {
+				 buildingID=rs.getInt("buildingid");
+			 }
+			 query="INSERT INTO `bookingproject`.`rooms` (`buildingid`, `smoking`, "
+			 		+ "`numberOfBeds`, `numberOfPeople`, `price`, `roomNumber`) VALUES ('"+buildingID+"', '"+smoking+"', '"+numberOfBeds+"', '"
+			 				+numberOfPeople+"', '"+price+"', '"+roomNumber+"');";
+			 Statement stmt = conn.prepareStatement(query);
+			 stmt.executeUpdate(query);	 
+	}
+	public void changeRoomData(String username,String smoking,int numberOfBeds,int numberOfPeople, double price,String currentRoomNumber,String newRoomNumber) throws ClassNotFoundException, SQLException
+	{
+		//sets up db connection
+		int userID=0, buildingID=0,roomID=0;
+		Class.forName("com.mysql.jdbc.Driver");
+		conn=DriverManager.getConnection("jdbc:mysql://lodgebasedb.ctud3vauv27c.us-east-1.rds.amazonaws.com/bookingproject","lodgebase","lodgebase");
+		//finds user's id number
+		 String query="SELECT * FROM bookingproject.userinfo WHERE username=?;";
+		 PreparedStatement pstmt = conn.prepareStatement(query);
+		 pstmt.setString( 1, username); 
+		 ResultSet rs = pstmt.executeQuery( );
+		 if(rs.next())
+		 {
+			 userID=rs.getInt("userid");
+		 }
+		 //finds building id for the manager
+		 roomNumbers.clear();
+		 query="SELECT * FROM bookingproject.buildings WHERE managerid=?;";
+		 pstmt = conn.prepareStatement(query);
+		 pstmt.setInt( 1, userID); 
+		 rs = pstmt.executeQuery( );
+		 if(rs.next())
+		 {
+			 buildingID=rs.getInt("buildingid");
+		 }
+		//finds room id from room number and building id
+		 roomNumbers.clear();
+		 query="SELECT * FROM bookingproject.rooms WHERE buildingid=? AND roomNumber=?;";
+		 pstmt = conn.prepareStatement(query);
+		 pstmt.setInt( 1, buildingID); 
+		 pstmt.setString( 2, currentRoomNumber);
+		 rs = pstmt.executeQuery( );
+		 if(rs.next())
+		 {
+			 roomID=rs.getInt("roomID");
+		 }
+		 query="UPDATE `bookingproject`.`rooms` SET `smoking`='"+smoking+"', `numberOfBeds`='"+numberOfBeds+"', `numberOfPeople`='"+
+		 numberOfPeople+"', `price`='"+price+"', `roomNumber`='"+newRoomNumber+"'  WHERE `roomid`='"+roomID+"';";
+		 Statement stmt = conn.prepareStatement(query);
+		 stmt.executeUpdate(query);	
+
+	}
+	public void deleteRoom(String username,String roomNumber) throws ClassNotFoundException, SQLException
+	{
+		//sets up db connection
+				int userID=0, buildingID=0,roomID=0;
+				Class.forName("com.mysql.jdbc.Driver");
+				conn=DriverManager.getConnection("jdbc:mysql://lodgebasedb.ctud3vauv27c.us-east-1.rds.amazonaws.com/bookingproject","lodgebase","lodgebase");
+				//finds user's id number
+				 String query="SELECT * FROM bookingproject.userinfo WHERE username=?;";
+				 PreparedStatement pstmt = conn.prepareStatement(query);
+				 pstmt.setString( 1, username); 
+				 ResultSet rs = pstmt.executeQuery( );
+				 if(rs.next())
+				 {
+					 userID=rs.getInt("userid");
+				 }
+				 //finds building id for the manager
+				 roomNumbers.clear();
+				 query="SELECT * FROM bookingproject.buildings WHERE managerid=?;";
+				 pstmt = conn.prepareStatement(query);
+				 pstmt.setInt( 1, userID); 
+				 rs = pstmt.executeQuery( );
+				 if(rs.next())
+				 {
+					 buildingID=rs.getInt("buildingid");
+				 }
+				//finds room id from room number and building id
+				 roomNumbers.clear();
+				 query="SELECT * FROM bookingproject.rooms WHERE buildingid=? AND roomNumber=?;";
+				 pstmt = conn.prepareStatement(query);
+				 pstmt.setInt( 1, buildingID); 
+				 pstmt.setString( 2, roomNumber);
+				 rs = pstmt.executeQuery( );
+				 if(rs.next())
+				 {
+					 roomID=rs.getInt("roomID");
+				 }
+				 query="DELETE FROM `bookingproject`.`rooms` WHERE `roomid`='"+roomID+"';";
+				 Statement stmt = conn.prepareStatement(query);
+				 stmt.executeUpdate(query);	
+				 
+		//TODO method to turn customer account into receptionist
+	}
+	//-------------------------FOR SUPPORT----------------------------------
+	
+	//TODO method to add building/hotel to the website
+	//TODO method to add a manager to a hotel
 }
