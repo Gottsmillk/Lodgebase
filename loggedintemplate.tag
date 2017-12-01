@@ -49,6 +49,17 @@
 		{
 			Bean.getUser().deleteRoom((String)session.getAttribute("username"),request.getParameter("removeRooms"));
 		} 
+		if(request.getParameter("searchsubmit")==null)
+		{
+			Bean.getUser().getRoomArray().clear();
+		}
+		if(request.getParameter("searchsubmit")!=null)
+		{
+			String numGuests=request.getParameter("numGuests");
+			String numBeds=request.getParameter("numBeds");
+			System.out.println(request.getParameter("numGuests")+" "+request.getParameter("numBeds"));
+			Bean.getUser().updateRoomArray(numGuests,numBeds,"","");
+		} 
 %>
 <body>
 <div class="container-fluid">

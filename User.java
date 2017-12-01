@@ -23,6 +23,8 @@ public class User
 	Connection conn=null;
 	ArrayList<String> history=new ArrayList<String>(0);
 	ArrayList<String> roomNumbers=new ArrayList<String>(0);
+	ArrayList<Room> roomArray=new ArrayList<Room>(0);
+	String[] testArray = {"Hello", "Goodbye", "Test"};
 	
 	public String getUserName()
 	{
@@ -40,7 +42,15 @@ public class User
 	{
 		return roomNumbers;
 	}
-	
+
+	public String[] getTestArray()
+	{
+		return testArray;
+	}
+	public ArrayList<Room> getRoomArray()
+	{
+		return roomArray;
+	}
 	
 	
 	//----------------------FOR USERS------------------------------------
@@ -86,7 +96,20 @@ public class User
 		 return true;
 	}
 	
-	//TODO method to search for room based on filters
+	public void updateRoomArray(String numGuests, String numBeds, String check_in, String check_out) throws ClassNotFoundException, SQLException
+	{
+		roomArray.clear();
+		Class.forName("com.mysql.jdbc.Driver");
+		conn=DriverManager.getConnection("jdbc:mysql://lodgebasedb.ctud3vauv27c.us-east-1.rds.amazonaws.com/bookingproject","lodgebase","lodgebase");
+		String query = "SELECT * FROM bookingproject.rooms WHERE numberOfPeople >= '" + numGuests + "' AND numberOfBeds >= '" + numBeds + "'";
+		Statement stmt = conn.createStatement();
+		ResultSet rs = stmt.executeQuery(query);
+		while(rs.next()){
+			Room tempRoom = new Room();
+			tempRoom.roomID = rs.getInt("roomid");
+			roomArray.add(tempRoom);
+		}
+	}
 	
 	//shows users room history
 	public boolean userHistory(String user) throws ClassNotFoundException, SQLException
