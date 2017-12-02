@@ -33,8 +33,6 @@
 		{
 			response.sendRedirect("/Hotel/index.jsp");
 		}
-<<<<<<< HEAD
-=======
 		if(request.getParameter("newRoom")!=null&&request.getParameter("newRoom").equals("Submit Query"))
 		{ 
 			Bean.getUser().createRoom((String)session.getAttribute("username"),request.getParameter("smoking"),
@@ -59,10 +57,23 @@
 		{
 			String numGuests=request.getParameter("numGuests");
 			String numBeds=request.getParameter("numBeds");
-			System.out.println(request.getParameter("numGuests")+" "+request.getParameter("numBeds"));
-			Bean.getUser().updateRoomArray(numGuests,numBeds,"","");
+			String checkIn = request.getParameter("checkInDate");
+			String checkOut = request.getParameter("checkOutDate");
+			String smokingInput = request.getParameter("smoking");
+			String suiteInput = "";
+			if(request.getParameter("suite") != null){
+				suiteInput = request.getParameter("suite");
+			}
+			String minPriceInput = "0";
+			String maxPriceInput = "1000";
+			if(request.getParameter("minPrice") != ""){
+				minPriceInput = request.getParameter("minPrice");
+			}
+			if(request.getParameter("maxPrice") != ""){
+				maxPriceInput = request.getParameter("maxPrice");
+			}
+			Bean.getUser().updateRoomArray(numGuests,numBeds,checkIn,checkOut,smokingInput,suiteInput,minPriceInput,maxPriceInput);
 		} 
->>>>>>> bd0743874daae64dbdf742aaac8ce4ad71bce1a7
 %>
 <body>
 <div class="container-fluid">

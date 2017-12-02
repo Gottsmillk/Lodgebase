@@ -4,25 +4,21 @@
     /* Set gray background color and 100% height */
     .sidenav 
     {
-      background-color: #f7d380;
+      background-color: #f1f1f1;
       height: 100%;
-      width: 20%;
     }
     
     /* Set black background color, blue text and some bottom padding */
     header 
     {
-      
-      
+      background-color: black;
+      color: blue;
       width: absolute;
       top: 0;
       margin-bottom: 10px;
-      height:40px;
+      height:50px;
     }
-    body
-    {
-    	background-image: url("C:/Users/Guy/Downloads/vacation10.jpg");
-    }
+    
     /* On small screens, set height to 'auto' for sidenav and grid */
     @media screen and (max-width: 767px) 
     {
@@ -34,23 +30,5 @@
     }
     h1 
     {
-    	margin-top: 11px;
-    	color: black;
-    	border-bottom: 1px solid black;
-     	font-family: sans-serif;
-     	font-size: 23px;
-    	
-	}
-	h4
-	{
-	 	font-size: 25px;
-    	font-family: sans-serif;
-    	color: white;
-	}
-	nav-pills>li.active>a, .nav-pills>li.active>a:focus, .nav-pills>li.active>a:hover {
-    
-    background-color: black;
-	}
-	a{
-		color:black;
+    	margin-top: 0;
 	}
